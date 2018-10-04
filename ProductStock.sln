@@ -10,12 +10,16 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductStock.API", "ProductStock.API\ProductStock.API.csproj", "{41B64D41-3D4F-4A14-BD74-73E6AC459ECA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{972C8FC1-CA34-4CF1-9B44-FBA4F1BE4088}"
+	ProjectSection(SolutionItems) = preProject
+		Documentation\mongod.cfg = Documentation\mongod.cfg
+		Documentation\README.txt = Documentation\README.txt
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Product.API", "Product.API\Product.API.csproj", "{D3B8F556-D462-4793-BB0F-D3A9FA07B149}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Product.API", "Product.API\Product.API.csproj", "{D3B8F556-D462-4793-BB0F-D3A9FA07B149}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Product.DAL", "Product.DAL\Product.DAL.csproj", "{7D4E8472-499E-4C47-83B6-19544EF33520}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Product.DAL", "Product.DAL\Product.DAL.csproj", "{7D4E8472-499E-4C47-83B6-19544EF33520}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Product.DL", "Product.DL\Product.DL.csproj", "{A6789C83-FF88-4D34-9F96-2B3D5E481E36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Product.DL", "Product.DL\Product.DL.csproj", "{A6789C83-FF88-4D34-9F96-2B3D5E481E36}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
