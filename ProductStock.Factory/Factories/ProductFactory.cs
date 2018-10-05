@@ -13,7 +13,7 @@
             bulb.Prices = new List<ProductPrice>
             {
                 new ProductPrice(bulb.Id, new DateTime(2018, 1, 1, 0, 0, 0).ToLocalTime(), 0.89),
-                new ProductPrice(bulb.Id, new DateTime(2018, 4, 1, 0, 0, 0).ToLocalTime(), 0.95),
+                new ProductPrice(bulb.Id, new DateTime(2018, 3, 9, 0, 0, 0).ToLocalTime(), 0.95),
                 new ProductPrice(bulb.Id, new DateTime(2018, 4, 10, 0, 0, 0).ToLocalTime(), 0.92)
             };
             bulb.StockCounts = new List<ProductStockCount>
@@ -25,7 +25,7 @@
             {
                 new ProductStockMutation(bulb.Id, new DateTime(2018, 1, 10, 0, 0, 0).ToLocalTime(), new DateTime(2018, 1, 20, 0, 0, 0).ToLocalTime(), MutationType.Purchase, 2),
                 new ProductStockMutation(bulb.Id, new DateTime(2018, 2, 10, 0, 0, 0).ToLocalTime(), new DateTime(2018, 2, 20, 0, 0, 0).ToLocalTime(), MutationType.Purchase, 2),
-                new ProductStockMutation(bulb.Id, new DateTime(2018, 2, 10, 0, 0, 0).ToLocalTime(), new DateTime(2018, 2, 20, 0, 0, 0).ToLocalTime(), MutationType.Supply,  10),
+                new ProductStockMutation(bulb.Id, new DateTime(2018, 2, 10, 0, 0, 0).ToLocalTime(), new DateTime(2018, 2, 10, 0, 0, 0).ToLocalTime(), MutationType.Supply,  10),
                 new ProductStockMutation(bulb.Id, new DateTime(2018, 3, 10, 0, 0, 0).ToLocalTime(), new DateTime(2018, 3, 20, 0, 0, 0).ToLocalTime(), MutationType.Purchase, 2),
                 new ProductStockMutation(bulb.Id, new DateTime(2018, 4, 10, 0, 0, 0).ToLocalTime(), new DateTime(2018, 4, 20, 0, 0, 0).ToLocalTime(), MutationType.Purchase, 2),
                 new ProductStockMutation(bulb.Id, new DateTime(2018, 4, 12, 0, 0, 0).ToLocalTime(), new DateTime(2018, 4, 12, 0, 0, 0).ToLocalTime(), MutationType.Correction, -1), // should be 9 were 8

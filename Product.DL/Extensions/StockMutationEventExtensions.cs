@@ -20,12 +20,12 @@
 
             if (stockMutationEvent.EventDate <= product.StateDate)
             {
-                product.InStock += mutationAmount;
+                product.Available += mutationAmount;
             }
 
             if (stockMutationEvent.Value.ShipmentDate <= product.StateDate)
             {
-                product.Available += mutationAmount;
+                product.InStock += mutationAmount;
             }
 
             return true;

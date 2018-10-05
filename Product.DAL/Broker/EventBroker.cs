@@ -28,16 +28,17 @@
 
         public static async Task<DL.Models.Product> GetProduct(Guid productId)
         {
+            DL.Models.Product result = null;
+
             if (!ProductStocks.ContainsKey(productId))
             {
                 await _loadLock.WaitAsync().ConfigureAwait(false);
 
                 try
                 {
-                    if (!(await LoadProduct(productId).ConfigureAwait(false)))
-                    {
-                        throw new NullReferenceException($"Loading product with id {productId} failed.");
-                    }
+                    result = await LoadProduct(productId).ConfigureAwait(false);
+                    SetProductState(result, DateTimeOffset.Now);
+                    return result;
                 }
                 catch (Exception exception)
                 {
@@ -49,10 +50,6 @@
                     _loadLock.Release();
                 }
             }
-
-            var result = Products[productId];
-
-            SetProductState(result, DateTimeOffset.Now);
 
             return result;
         }
@@ -104,13 +101,14 @@
             }
         }
 
-        internal static bool SetProduct(ProductStock.DL.Models.Product product)
+        internal static DL.Models.Product SetProduct(ProductStock.DL.Models.Product product)
         {
             if (!ProductStocks.ContainsKey(product.Id))
             {
                 ProductStocks.Add(product.Id, product);
 
-                Products.Add(product.Id, new DL.Models.Product(product.Id, product.Number, product.Description));
+                var result = new DL.Models.Product(product.Id, product.Number, product.Description);
+                Products.Add(product.Id, result);
 
                 var priceChangedEvents = new List<PriceChangedEvent>();
                 double oldPrice = 0;
@@ -129,10 +127,10 @@
                 PriceChangedEvents.Add(product.Id, priceChangedEvents);
                 StockMutationEvents.Add(product.Id, stockMutationEvents);
 
-                return true;
+                return result;
             }
 
-            return false;
+            return Products[product.Id];
         }
 
         private static async Task<bool> LoadProducts()
@@ -152,7 +150,7 @@
             }
         }
 
-        private static async Task<bool> LoadProduct(Guid productId)
+        private static async Task<DL.Models.Product> LoadProduct(Guid productId)
         {
             try
             {
