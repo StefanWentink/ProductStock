@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ProductStock.DAL\ProductStock.DAL.csproj" />
+    <ProjectReference Include="..\ProductStock.Factory\ProductStock.Factory.csproj" />
   </ItemGroup>
 
 </Project>

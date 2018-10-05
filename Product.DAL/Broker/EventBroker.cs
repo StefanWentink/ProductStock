@@ -6,10 +6,9 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Net.Http;
-    using Newtonsoft.Json;
     using System.Threading;
     using MoreLinq;
+    using Product.DAL.Context;
 
     public static class EventBroker
     {
@@ -105,38 +104,7 @@
             }
         }
 
-        private static async Task<bool> LoadProducts()
-        {
-            try
-            {
-                var products = await LoadStockProducts().ConfigureAwait(false);
-
-                products.ForEach(x => SetProduct(x));
-
-                return true;
-            }
-            catch (Exception exception)
-            {
-                // Log exception
-                throw;
-            }
-        }
-
-        private static async Task<bool> LoadProduct(Guid productId)
-        {
-            try
-            {
-                var product = await LoadStockProduct(productId).ConfigureAwait(false);
-                return SetProduct(product);
-            }
-            catch (Exception exception)
-            {
-                // Log exception
-                throw;
-            }
-        }
-
-        private static bool SetProduct(ProductStock.DL.Models.Product product)
+        internal static bool SetProduct(ProductStock.DL.Models.Product product)
         {
             if (!ProductStocks.ContainsKey(product.Id))
             {
@@ -167,21 +135,34 @@
             return false;
         }
 
-        private static async Task<ProductStock.DL.Models.Product> LoadStockProduct(Guid productId)
+        private static async Task<bool> LoadProducts()
         {
-            using (var client = new HttpClient())
+            try
             {
-                var result = await client.GetStringAsync($"https://localhost:44312/api/Product/Get/{productId}").ConfigureAwait(false);
-                return JsonConvert.DeserializeObject<ProductStock.DL.Models.Product>(result);
+                var products = await ProductContext.LoadStockProducts().ConfigureAwait(false);
+
+                products.ForEach(x => SetProduct(x));
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                // Log exception
+                throw;
             }
         }
 
-        internal static async Task<IEnumerable<ProductStock.DL.Models.Product>> LoadStockProducts()
+        private static async Task<bool> LoadProduct(Guid productId)
         {
-            using (var client = new HttpClient())
+            try
             {
-                var result = await client.GetStringAsync($"https://localhost:44312/api/Product/Get").ConfigureAwait(false);
-                return JsonConvert.DeserializeObject<IEnumerable<ProductStock.DL.Models.Product>>(result);
+                var product = await ProductContext.LoadStockProduct(productId).ConfigureAwait(false);
+                return SetProduct(product);
+            }
+            catch (Exception exception)
+            {
+                // Log exception
+                throw;
             }
         }
     }

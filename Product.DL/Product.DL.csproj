@@ -24,8 +24,4 @@
     <ProjectReference Include="..\ProductStock.DL\ProductStock.DL.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="EventArgs\" />
-  </ItemGroup>
-
 </Project>
