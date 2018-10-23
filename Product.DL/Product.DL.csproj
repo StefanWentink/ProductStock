@@ -17,7 +17,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Events\StockCountEvent.cs" />
+    <Compile Remove="Events\**" />
+    <Compile Remove="Extensions\**" />
+    <EmbeddedResource Remove="Events\**" />
+    <EmbeddedResource Remove="Extensions\**" />
+    <None Remove="Events\**" />
+    <None Remove="Extensions\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Extensions\ProductExtensions.cs" />
   </ItemGroup>
 
   <ItemGroup>

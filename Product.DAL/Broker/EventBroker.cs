@@ -1,6 +1,5 @@
 ﻿namespace Product.DAL.Broker
 {
-    using Product.DL.Events;
     using Product.DL.Extensions;
     using System;
     using System.Collections.Generic;
@@ -10,9 +9,6 @@
     using MoreLinq;
     using Product.DAL.Context;
     using SWE.EventSourcing.Factories;
-    using SWE.EventSourcing.Events.Mutation;
-    using SWE.EventSourcing.Events.Change;
-    using SWE.EventSourcing.Extensions;
     using SWE.EventSourcing.Containers;
     using SWE.EventSourcing.Interfaces.Events;
 
