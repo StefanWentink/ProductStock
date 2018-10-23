@@ -4,12 +4,12 @@
     using SWE.Model.Interfaces;
     using System;
 
-    public abstract class ProductReferenceEvent<T> : EventArgs, IKey
-        where T : IProductReference
+    public abstract class ProductReferenceEvent<TValue> : EventArgs, IKey
+        where TValue : IProductReference
     {
         public Guid Id { get; set; }
 
-        public T Value { get; set; }
+        public TValue Value { get; set; }
 
         public DateTimeOffset EventDate { get; set; }
 
@@ -18,7 +18,7 @@
         {
         }
 
-        protected ProductReferenceEvent(T value, DateTimeOffset eventDate)
+        protected ProductReferenceEvent(TValue value, DateTimeOffset eventDate)
         {
             Id = Guid.NewGuid();
             Value = value;

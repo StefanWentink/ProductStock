@@ -9,6 +9,12 @@
     using System.Threading;
     using MoreLinq;
     using Product.DAL.Context;
+    using SWE.EventSourcing.Factories;
+    using SWE.EventSourcing.Events.Mutation;
+    using SWE.EventSourcing.Events.Change;
+    using SWE.EventSourcing.Extensions;
+    using SWE.EventSourcing.Containers;
+    using SWE.EventSourcing.Interfaces.Events;
 
     public static class EventBroker
     {
@@ -20,13 +26,35 @@
         private static Dictionary<Guid, DL.Models.Product> Products { get; }
             = new Dictionary<Guid, DL.Models.Product>();
 
-        private static Dictionary<Guid, List<PriceChangedEvent>> PriceChangedEvents { get; }
-            = new Dictionary<Guid, List<PriceChangedEvent>>();
+        private static OrderedEventContainer<DL.Models.Product, Guid, Guid, DateTimeOffset> EventContainer { get; set; }
 
-        private static Dictionary<Guid, List<StockMutationEvent>> StockMutationEvents { get; }
-            = new Dictionary<Guid, List<StockMutationEvent>>();
+        private static void AddEvents(Guid id, OrderedEventCollection<DL.Models.Product, Guid, DateTimeOffset> collection)
+        {
+            if (EventContainer == null)
+            {
+                EventContainer = new OrderedEventContainer<DL.Models.Product, Guid, Guid, DateTimeOffset>(id, collection);
+            }
+            else
+            {
+                collection.ForEach(x => EventContainer.Add(x, id));
+            }
+        }
+
+        //private static Dictionary<Guid, IEnumerable<OrderedChangeEvent<DL.Models.Product, Guid, DateTimeOffset>>> PriceChangedEvents { get; }
+        //    = new Dictionary<Guid, IEnumerable<OrderedChangeEvent<DL.Models.Product, Guid, DateTimeOffset>>>();
+
+        //private static Dictionary<Guid, IEnumerable<OrderedMutationEvent<DL.Models.Product, Guid, DateTimeOffset>>> StockAvailableMutationEvents { get; }
+        //    = new Dictionary<Guid, IEnumerable<OrderedMutationEvent<DL.Models.Product, Guid, DateTimeOffset>>>();
+
+        //private static Dictionary<Guid, IEnumerable<OrderedMutationEvent<DL.Models.Product, Guid, DateTimeOffset>>> StockInStockMutationEvents { get; }
+        //    = new Dictionary<Guid, IEnumerable<OrderedMutationEvent<DL.Models.Product, Guid, DateTimeOffset>>>();
 
         public static async Task<DL.Models.Product> GetProduct(Guid productId)
+        {
+            return await GetProduct(productId, DateTimeOffset.Now).ConfigureAwait(false);
+        }
+
+        public static async Task<DL.Models.Product> GetProduct(Guid productId, DateTimeOffset referenceDate)
         {
             DL.Models.Product result = null;
 
@@ -37,7 +65,7 @@
                 try
                 {
                     result = await LoadProduct(productId).ConfigureAwait(false);
-                    SetProductState(result, DateTimeOffset.Now);
+                    SetProductState(result, referenceDate);
                     return result;
                 }
                 catch (Exception exception)
@@ -82,23 +110,11 @@
             return result;
         }
 
-        public static void SetProductState(DL.Models.Product product, DateTimeOffset stateDate)
+        public static void SetProductState(DL.Models.Product product, DateTimeOffset referenceDate)
         {
-            product.SetStateDate(stateDate);
+            product.SetStateDate(referenceDate);
 
-            foreach (var priceChangedEvent in PriceChangedEvents[product.Id]
-                .Where(x => x.Value.RegisterDate <= stateDate)
-                .OrderBy(x => x.Value.RegisterDate))
-            {
-                priceChangedEvent.ApplyEvent(product);
-            }
-
-            foreach (var stockMutationEvent in StockMutationEvents[product.Id]
-                .Where(x => x.Value.OrderDate <= stateDate)
-                .OrderBy(x => x.Value.OrderDate))
-            {
-                stockMutationEvent.ApplyEvent(product);
-            }
+            EventContainer.ApplyAll(product, referenceDate);
         }
 
         internal static DL.Models.Product SetProduct(ProductStock.DL.Models.Product product)
@@ -110,22 +126,47 @@
                 var result = new DL.Models.Product(product.Id, product.Number, product.Description);
                 Products.Add(product.Id, result);
 
-                var priceChangedEvents = new List<PriceChangedEvent>();
-                double oldPrice = 0;
-                foreach (var productPrice in product.Prices)
-                {
-                    priceChangedEvents.Add(new PriceChangedEvent(productPrice, oldPrice));
-                    oldPrice = productPrice.Price;
-                }
+                var priceChanges = ChangeFactory.ToOrderedChangeEvent<
+                    DL.Models.Product,
+                    ProductStock.DL.Models.ProductPrice,
+                    Guid,
+                    double,
+                    DateTimeOffset>(
+                    x => x.Price,
+                    0,
+                    product.Prices,
+                    x => x.Id,
+                    x => x.Price,
+                    x => x.RegisterDate).
+                    Cast<IEvent<DL.Models.Product, Guid>>().ToList();
 
-                var stockMutationEvents = new List<StockMutationEvent>();
-                foreach (var stockMutation in product.StockMutations)
-                {
-                    stockMutationEvents.Add(new StockMutationEvent(stockMutation));
-                }
+                var stockAvailableMutations = MutationFactory.ToOrderedMutationEvent<
+                                    DL.Models.Product,
+                                    ProductStock.DL.Models.ProductStockMutation,
+                                    Guid,
+                                    int,
+                                    DateTimeOffset>(
+                                    x => x.Available,
+                                    product.StockMutations,
+                                    x => x.Id,
+                                    x => x.Amount * (x.Type == ProductStock.DL.Enums.MutationType.Purchase ? -1 : 1),
+                                    x => x.OrderDate).Cast<IEvent<DL.Models.Product, Guid>>().ToList();
 
-                PriceChangedEvents.Add(product.Id, priceChangedEvents);
-                StockMutationEvents.Add(product.Id, stockMutationEvents);
+                var stockInStockMutations = MutationFactory.ToOrderedMutationEvent<
+                                    DL.Models.Product,
+                                    ProductStock.DL.Models.ProductStockMutation,
+                                    Guid,
+                                    int,
+                                    DateTimeOffset>(
+                                    x => x.InStock,
+                                    product.StockMutations,
+                                    x => x.Id,
+                                    x => x.Amount * (x.Type == ProductStock.DL.Enums.MutationType.Purchase ? -1 : 1),
+                                    x => x.ShipmentDate).Cast<IEvent<DL.Models.Product, Guid>>().ToList();
+
+                AddEvents(product.Id, new OrderedEventCollection<DL.Models.Product, Guid, DateTimeOffset>(priceChanges.ToList()));
+                AddEvents(product.Id, new OrderedEventCollection<DL.Models.Product, Guid, DateTimeOffset>(stockAvailableMutations.ToList()));
+                AddEvents(product.Id, new OrderedEventCollection<DL.Models.Product, Guid, DateTimeOffset>(stockInStockMutations.ToList()));
 
                 return result;
             }
