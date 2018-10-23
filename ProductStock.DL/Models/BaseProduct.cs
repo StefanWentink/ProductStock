@@ -18,7 +18,7 @@
         }
 
         protected BaseProduct(
-            Guid id, 
+            Guid id,
             string number,
             string description)
         {
